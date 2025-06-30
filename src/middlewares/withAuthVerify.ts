@@ -13,7 +13,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     }
 
     try {
-        JWT.instance.valid(token)
+        req.user = JWT.instance.verifyAndDecode(token)
     } catch (error) {
         console.error(error)
         if(error instanceof JsonWebTokenError) {

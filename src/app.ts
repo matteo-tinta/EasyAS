@@ -10,6 +10,7 @@ import registerHandler from "./handlers/register/register.handler"
 import loginHandler from "./handlers/login/login.handler";
 import withAuthVerify from "./middlewares/withAuthVerify";
 import refreshHandler from "./handlers/refresh/refresh.handler";
+import logoutHandler from "./handlers/logout/logout.handler";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.get("/", async (req, res) => {
 
 app.post("/register", registerHandler)
 app.get("/login", loginHandler)
+app.get("/logout", withAuthVerify, logoutHandler)
 app.get("/verify", withAuthVerify, (req, res) => res.status(200).send({ ok: true }))
 app.post("/token", refreshHandler)
 

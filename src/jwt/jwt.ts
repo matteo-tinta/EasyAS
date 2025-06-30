@@ -1,7 +1,8 @@
-import { verify, sign } from "jsonwebtoken"
+import * as jwtValidator from "jsonwebtoken"
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ASJwtPayload } from "./models/ASJwtPayload";
 
 export class JWT {
     static #instance: JWT;
@@ -21,20 +22,11 @@ export class JWT {
         this.publicKey = fs.readFileSync(path.join(__dirname, '..', 'keys', 'public.key'));
     }
 
-    public valid = (jwt: string): boolean => {
-        verify(jwt.trim(), this.publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
-            if (err)
-            {
-                throw err
-            }
-
-            console.dir({ decoded })
-        })
-
-        return true;
+    public verifyAndDecode = (jwt: string): ASJwtPayload => {
+        return jwtValidator.verify(jwt.trim(), this.publicKey, { algorithms: ['RS256'] }) as ASJwtPayload
     }
 
     public sign = (o: object): string => {
-        return sign(o, this.privateKey, { algorithm: 'RS256', expiresIn: 60 })
+        return jwtValidator.sign(o, this.privateKey, { algorithm: 'RS256', expiresIn: 60 })
     }
 }
