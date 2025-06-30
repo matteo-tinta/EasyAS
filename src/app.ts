@@ -7,6 +7,8 @@ import { DB } from "./infrastructure/persitence/db";
 import withLogging from "./middlewares/withLogging";
 
 import registerHandler from "./handlers/register/register.handler"
+import loginHandler from "./handlers/login/login.handler";
+import withAuthVerify from "./middlewares/withAuthVerify";
 
 const app = express();
 
@@ -30,6 +32,8 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/register", registerHandler)
+app.get("/login", loginHandler)
+app.get("/verify", withAuthVerify, (req, res) => res.status(200).send({ ok: true }))
 
 app.use(globalExceptionHandler)
 

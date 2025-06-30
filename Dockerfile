@@ -29,6 +29,7 @@ COPY . .
 
 # Build the project
 RUN pnpm build
+COPY ./src/keys/ ./dist/keys/
 
 # Expose port (adjust if your app uses another port)
 EXPOSE 4000
