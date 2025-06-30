@@ -1,0 +1,8 @@
+### Register a new user
+POST http://localhost:4000/register
+Content-Type: application/json
+
+{
+  "username": "exampleUser",
+  "password": "strongPassword123"
+}

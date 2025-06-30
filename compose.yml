@@ -7,8 +7,9 @@ services:
     environment:
       NODE_ENV: production
     depends_on:
-      eas-mongo:
-        condition: service_healthy
+      - eas-mongo
+    env_file:
+      - .env
     develop:
       watch:
         - path: ./src/
@@ -20,6 +21,8 @@ services:
           action: rebuild
         - path: ./package-lock.json
           action: rebuild
+        - path: ./.env
+          action: rebuild
     
   eas-mongo:
     image: mongo:8
@@ -27,24 +30,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=test
       - MONGO_INITDB_ROOT_PASSWORD=test
-    entrypoint: >
-      /bin/bash -c '
-        openssl rand -base64 756 > /data/replica.key &&
-        chmod 400 /data/replica.key &&
-        chown mongodb:mongodb /data/replica.key &&
-        /usr/local/bin/docker-entrypoint.sh mongod --replSet rs --bind_ip_all --port 27017 --keyFile /data/replica.key
-      '
-    command: mongod --quiet --logpath /dev/null 
     ports:
       - 27017:27017
-    healthcheck:
-      test: mongosh -u test -p test
-        --eval "try { rs.status() } catch (err) { rs.initiate({_id:'rs',members:[{_id:0,host:'localhost:27017'}]}) }" | mongosh --port 27017 --quiet
-      interval: 30s
-      timeout: 30s
-      start_period: 0s
-      start_interval: 1s
-      retries: 30
     volumes:
       - mongo-data-db:/data/db
       - mongo-data-configdb:/data/configdb
