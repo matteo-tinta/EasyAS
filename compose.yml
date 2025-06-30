@@ -1,0 +1,55 @@
+services:
+  eas-code:
+    build: .
+    container_name: eas-app
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+    depends_on:
+      eas-mongo:
+        condition: service_healthy
+    develop:
+      watch:
+        - path: ./src/
+          action: rebuild
+          ignore:
+            - "**/node_modules/**"
+            - "**/*.!(ts)"  # ignore non-TypeScript files
+        - path: ./package.json
+          action: rebuild
+        - path: ./package-lock.json
+          action: rebuild
+    
+  eas-mongo:
+    image: mongo:8
+    container_name: eas-mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=test
+      - MONGO_INITDB_ROOT_PASSWORD=test
+    entrypoint: >
+      /bin/bash -c '
+        openssl rand -base64 756 > /data/replica.key &&
+        chmod 400 /data/replica.key &&
+        chown mongodb:mongodb /data/replica.key &&
+        /usr/local/bin/docker-entrypoint.sh mongod --replSet rs --bind_ip_all --port 27017 --keyFile /data/replica.key
+      '
+    command: mongod --quiet --logpath /dev/null 
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: mongosh -u test -p test
+        --eval "try { rs.status() } catch (err) { rs.initiate({_id:'rs',members:[{_id:0,host:'localhost:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 30s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
+    volumes:
+      - mongo-data-db:/data/db
+      - mongo-data-configdb:/data/configdb
+    restart: unless-stopped
+
+volumes:
+  mongo-data-db:
+  mongo-data-configdb:
