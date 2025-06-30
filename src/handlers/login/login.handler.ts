@@ -2,13 +2,16 @@ import { Request, Response } from "express";
 import { DB } from "../../infrastructure/persitence/db";
 import { raise } from "../../raise";
 import { JWT } from "../../jwt/jwt";
+import { randomBytes } from 'crypto';
 
 type PAYLOAD = {
     username: string,
     password: string,
 }
 
-export default async (req: Request<{}, PAYLOAD, {}>, res: Response) => {
+const generateRefreshToken = () => randomBytes(32).toString('hex')
+
+export default async (req: Request<{}, {}, {}, PAYLOAD>, res: Response) => {
     var body = req.query;
 
     const result = DB.instance
@@ -20,9 +23,21 @@ export default async (req: Request<{}, PAYLOAD, {}>, res: Response) => {
         return res.status(401).send({ error: 401, message: "Credentials invalid" })
     }
 
-    var jwt = JWT.instance.sign({user: body.username})
+    var accessToken = JWT.instance.sign({user: body.username})
+    var refreshToken = generateRefreshToken();
+
+    //update refresh token in the database
+    DB.instance
+        .database
+        .collection("tokens")
+        .insertOne({
+            username: body.username,
+            refreshToken: refreshToken,
+            expireAt: new Date(new Date().getTime() + 60 * 60 * 1000) //expire in 1h
+        });
 
     return res.status(200).send({
-        "token": jwt
+        "token": accessToken,
+        "refreshToken": refreshToken
     })
 }

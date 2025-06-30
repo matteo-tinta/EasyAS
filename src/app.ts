@@ -9,9 +9,11 @@ import withLogging from "./middlewares/withLogging";
 import registerHandler from "./handlers/register/register.handler"
 import loginHandler from "./handlers/login/login.handler";
 import withAuthVerify from "./middlewares/withAuthVerify";
+import refreshHandler from "./handlers/refresh/refresh.handler";
 
 const app = express();
 
+app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(withInit, withLogging);
@@ -34,6 +36,7 @@ app.get("/", async (req, res) => {
 app.post("/register", registerHandler)
 app.get("/login", loginHandler)
 app.get("/verify", withAuthVerify, (req, res) => res.status(200).send({ ok: true }))
+app.post("/token", refreshHandler)
 
 app.use(globalExceptionHandler)
 
