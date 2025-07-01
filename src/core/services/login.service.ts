@@ -2,11 +2,12 @@ import { inject, injectable } from "inversify";
 import { randomBytes } from "crypto";
 import { JWT } from "../../jwt/jwt";
 import { Database } from "../../infrastructure/persitence/database";
+import { UserRepository } from "../../infrastructure/persitence/user/user.repository";
 
 @injectable("Request")
 export class LoginService {
 
-    constructor(@inject(Database) private database: Database) {
+    constructor(@inject(UserRepository) private userRepository: UserRepository) {
         
     }
 
@@ -21,27 +22,21 @@ export class LoginService {
             password
         } = options
 
-        const result = await this.database.users
-            .find({ username: username, password: password })
-            .toArray()
+        const user = await this.userRepository.getAsync({ username: username, password: password })
 
-        if(!result.length) {
+        if(!user) {
             throw new Error("Credentials invalid")
         }
-
-        var accessToken = JWT.instance.sign({user: username})
-        var refreshToken = this.generateRefreshToken();
-
+        
+        user.updateRefreshToken(this.generateRefreshToken());
+        
         //update refresh token in the database
-        this.database.tokens.insertOne({
-            username: username,
-            refreshToken: refreshToken,
-            expireAt: new Date(new Date().getTime() + 60 * 60 * 1000) //expire in 1h
-        });
-
+        this.userRepository.upsertUser(user);
+        
+        const accessToken = JWT.instance.sign({user: username})
         return {
             token: accessToken,
-            refreshToken: refreshToken
+            refreshToken: user.token!.refreshToken
         }
     }
 }

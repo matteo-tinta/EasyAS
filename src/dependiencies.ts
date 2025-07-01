@@ -4,6 +4,7 @@ import { LoginService } from "./core/services/login.service";
 import { DatabaseConnector } from "./infrastructure/persitence/database.connector";
 import { Database } from "./infrastructure/persitence/database";
 import { TYPES } from "./dependencies.types";
+import { UserRepository } from "./infrastructure/persitence/user/user.repository";
 
 const container = new Container()
 
@@ -16,6 +17,8 @@ container.bind(TYPES.databaseConnector)
     .inSingletonScope();
 
 container.bind(Database).toSelf();
+
+container.bind(UserRepository).toSelf();
 
 //core
 container.bind(LoginService).toSelf();
