@@ -1,4 +1,5 @@
 // global.d.ts
+import { Container } from "inversify";
 import { GenericContainer } from 'testcontainers'; // or your lib
 
 declare global {

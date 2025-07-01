@@ -1,3 +1,4 @@
+import "./dependiencies";
 import { server } from "./server";
 import "./environment";
 
@@ -12,4 +13,4 @@ process.on('unhandledRejection', (reason, promise) => {
   // handle the rejection here
 });
 
-server();
+server()

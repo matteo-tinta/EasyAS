@@ -1,3 +1,0 @@
-### Register a new user
-GET http://localhost:32841/login?username=exampleUser&password=strongPassword123
-Content-Type: application/json
