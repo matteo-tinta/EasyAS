@@ -11,7 +11,7 @@ describe("Login Endpoint", () => {
             password: "strongPassword123"
         })
 
-        var result = await fetch(`${appUrl}/login?username=exampleUser&password=strongPassword123`)
+        var result = await fetch(`${appUrl}/token/login?username=exampleUser&password=strongPassword123`)
         var json = await result.json()
 
         expect(result.status).toBe(200)
@@ -25,17 +25,17 @@ describe("Login Endpoint", () => {
             password: "strongPassword123"
         })
 
-        var result = await fetch(`${appUrl}/login?username=exampleUser&password=strongPassword1234`)
+        var result = await fetch(`${appUrl}/token/login?username=exampleUser&password=strongPassword1234`)
         expect(result.status).toBe(401)
     })
 
     composeTest.concurrent("login should return 401 if user does not exist", async ({appUrl}) => {
-        var result = await fetch(`${appUrl}/login?username=exampleUser1&password=strongPassword1234`)
+        var result = await fetch(`${appUrl}/token/login?username=exampleUser1&password=strongPassword1234`)
         expect(result.status).toBe(401)
     })
 
     composeTest.concurrent(`login should return 400 if request is malformed`, async ({appUrl}) => {
-        var result = await fetch(`${appUrl}/login`)
+        var result = await fetch(`${appUrl}/token/login`)
         expect(result.status).toBe(400)
     })
 })

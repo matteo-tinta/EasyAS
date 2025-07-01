@@ -17,13 +17,13 @@ describe("Verify Endpoint", () => {
             password: "strongPassword123"
         })
 
-        const result = await fetch(`${appUrl}/login?username=exampleUser&password=strongPassword123`)
+        const result = await fetch(`${appUrl}/token/login?username=exampleUser&password=strongPassword123`)
         const json = await result.json()
 
         expect(json.token).toMatch(/^(?:[^.]*\.){2}[^.]*$/);
 
         //Checking verify result
-        let verifyResult = await fetch(`${appUrl}/verify`, {
+        let verifyResult = await fetch(`${appUrl}/token/verify`, {
             headers: {
                 "Authorization": `Bearer ${json.token}`
             }
@@ -36,7 +36,7 @@ describe("Verify Endpoint", () => {
         //wait for 60s to make it down
         await wait(60);
         
-        verifyResult = await fetch(`${appUrl}/verify`, {
+        verifyResult = await fetch(`${appUrl}/token/verify`, {
             headers: {
                 "Authorization": `Bearer ${json.token}`
             }

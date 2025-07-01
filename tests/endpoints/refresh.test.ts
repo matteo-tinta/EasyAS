@@ -13,7 +13,7 @@ describe("Refresh Endpoint", () => {
         })
 
         //Refresh the token
-        const refreshTokenResult = await fetch(`${appUrl}/token`, {
+        const refreshTokenResult = await fetch(`${appUrl}/token/renew`, {
             method: "POST",
             headers: {
                 "Content-Type": `application/x-www-form-urlencoded`
@@ -32,7 +32,7 @@ describe("Refresh Endpoint", () => {
     composeTest.concurrent("when refresh token does not exist returns 400", async ({ appUrl, seed }) => {
         
         //Refresh the token
-        const refreshTokenResult = await fetch(`${appUrl}/token`, {
+        const refreshTokenResult = await fetch(`${appUrl}/token/renew`, {
             method: "POST",
             headers: {
                 "Content-Type": `application/x-www-form-urlencoded`
@@ -55,7 +55,7 @@ describe("Refresh Endpoint", () => {
         })
 
         //Refresh the token
-        const refreshTokenResult = await fetch(`${appUrl}/token`, {
+        const refreshTokenResult = await fetch(`${appUrl}/token/renew`, {
             method: "POST",
             headers: {
                 "Content-Type": `application/x-www-form-urlencoded`
