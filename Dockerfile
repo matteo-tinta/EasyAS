@@ -3,7 +3,7 @@ FROM ynap/certs as ssl
 # https://git.yoox.net/users/tintam/repos/docker.zscaler/browse
 
 # Use node 18 base image
-FROM node:22.16
+FROM node:22.16 as build
 
 # SSL Certificates
 COPY --from=ssl /tmp/certs/ /usr/local/share/ca-certificates/
