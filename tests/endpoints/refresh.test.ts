@@ -4,7 +4,7 @@ import { composeTest } from "../_contexts/test-container.context";
 
 
 describe("Refresh Endpoint", () => {
-    composeTest.concurrent("when refresh token is not expired, issues a new refresh and access token", async ({ appUrl, seed }) => {
+    composeTest("when refresh token is not expired, issues a new refresh and access token", async ({ appUrl, seed }) => {
         //Login and getting token
         await seed("tokens", {
             username: "exampleUser",
@@ -29,7 +29,7 @@ describe("Refresh Endpoint", () => {
         expect(refreshTokenBody.refreshToken).not.toMatch("123456")
     })
 
-    composeTest.concurrent("when refresh token does not exist returns 400", async ({ appUrl, seed }) => {
+    composeTest("when refresh token does not exist returns 400", async ({ appUrl, seed }) => {
         
         //Refresh the token
         const refreshTokenResult = await fetch(`${appUrl}/token/renew`, {
@@ -46,7 +46,7 @@ describe("Refresh Endpoint", () => {
         expect(refreshTokenBody.error).toBe("invalid_grant");
     })
 
-    composeTest.concurrent("when refresh token is expired returns 400", async ({ appUrl, seed }) => {
+    composeTest("when refresh token is expired returns 400", async ({ appUrl, seed }) => {
         //Login and getting token
         await seed("tokens", {
             username: "exampleUser",

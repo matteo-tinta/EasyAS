@@ -23,7 +23,7 @@ export const composeTest = baseTest.extend<CustomTestContainerContext>({
           "MONGO_INITDB_ROOT_PASSWORD": "test"
         })
         .withCommand(["mongod", "--bind_ip", "0.0.0.0", "--auth"])
-        .withWaitStrategy(Wait.forLogMessage(/MongoDB init process complete/))
+        .withWaitStrategy(Wait.forLogMessage(/MongoDB init process complete/i))
         .withNetwork(network)
         .start();
       
@@ -31,7 +31,7 @@ export const composeTest = baseTest.extend<CustomTestContainerContext>({
     await mongodbContainer.stop({ remove: true, removeVolumes: true })
   },
   app: async ({mongoDBContainer, network}, use) => {
-    const startedContainer = await global.sharedState.APP_IMAGE!
+    const startedContainer = await new GenericContainer("easyas-test-image")
       .withNetwork(network)
       .withExposedPorts(4000)
       // .withLogConsumer(readableStream => {
@@ -43,7 +43,7 @@ export const composeTest = baseTest.extend<CustomTestContainerContext>({
         "DB_CONN_STRING": `mongodb://test:test@${mongoDBContainer.getHostname()}:27017/as?authSource=admin&retryWrites=true&w=majority`,
         "DB_NAME": "AS"
       })
-      .withWaitStrategy(Wait.forLogMessage(/Server running/))
+      .withWaitStrategy(Wait.forLogMessage(/Server running/i))
       .start()
 
     await use(startedContainer)

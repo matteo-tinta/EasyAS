@@ -10,7 +10,7 @@ describe("Verify Endpoint", () => {
         }, timeInSeconds * 1000))
     }
 
-    composeTest.concurrent("verify should return ok if access token is valid, then ko if token is invalid", async ({ appUrl, seed }) => {
+    composeTest("verify should return ok if access token is valid, then ko if token is invalid", async ({ appUrl, seed }) => {
         //Login and getting token
         await seed("users", {
             username: "exampleUser",

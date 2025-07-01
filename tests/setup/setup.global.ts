@@ -6,18 +6,14 @@ global.sharedState = {
     
 }
 
-beforeAll(async () => {
+export default async function setup() {
     console.log('🧑‍🔧 building app image...');
     
-    global.sharedState.APP_IMAGE = await GenericContainer
+    await GenericContainer
           .fromDockerfile(path.join(__dirname, "..", ".."))
           .withBuildkit()
           .withCache(true)
-          .build();
+          .build("easyas-test-image");
     
     console.log('✅ built!');
-}, 1000 * 40)
-
-export default async function setup() {
-    console.log('🌍 Global setup running...');
 }

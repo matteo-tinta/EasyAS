@@ -4,7 +4,7 @@ import { composeTest } from "../_contexts/test-container.context";
 
 
 describe("Register Endpoint", () => {
-    composeTest.concurrent("register should register a new user", async ({ appUrl, seed }) => {
+    composeTest("register should register a new user", async ({ appUrl, seed }) => {
         const result = await fetch(`${appUrl}/register`, {
             method: "POST",
             headers: {
@@ -18,7 +18,7 @@ describe("Register Endpoint", () => {
 
         expect(result.status).toBe(200)
 
-        const loginResult = await fetch(`${appUrl}/login?username=exampleUser&password=strongPassword123`)
+        const loginResult = await fetch(`${appUrl}/token/login?username=exampleUser&password=strongPassword123`)
         var json = await loginResult.json()
         
         expect(loginResult.status).toBe(200)
