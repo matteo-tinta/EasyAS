@@ -1,13 +1,13 @@
 import { Request, Response, Router } from "express"
 import { inject, injectable } from "inversify";
-import { RegisterService } from "../../core/services/register.service";
+import { UserService } from "../../core/services/user.service";
 
 @injectable()
 export class RegisterController {
 
     constructor(
-        @inject(RegisterService)
-        private registerService: RegisterService) {
+        @inject(UserService)
+        private userService: UserService) {
 
     }
 
@@ -19,7 +19,7 @@ export class RegisterController {
             return;
         }
 
-        var result = await this.registerService.registerUserAsync({
+        var result = await this.userService.registerUserAsync({
             ...body
         })
 

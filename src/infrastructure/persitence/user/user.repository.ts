@@ -17,7 +17,7 @@ export class UserRepository {
 
     public async getAsync(filter: Filter<UserCollection>) {
         var result = await this.database.users.findOne(filter)
-        var token = await this.database.tokens.findOne({ username: filter.username })
+        var tokens = await this.database.tokens.find({ username: filter.username }).toArray()
 
         if(!result) {
             return null;
@@ -26,7 +26,7 @@ export class UserRepository {
         return new User(
             result.username,
             result.password,
-            !token ? null : new Token(result.username, token.refreshToken)
+            !tokens?.length ? [] : tokens.map(t => new Token(result!.username, t.refreshToken))
         )
     }
 
@@ -38,36 +38,22 @@ export class UserRepository {
                 { upsert: true }
             )
         
-        if(user.token)
-        {
-            var token = await this.database.tokens
-                .findOneAndUpdate(
-                    { username: user.username },
-                    {
-                        $set: {
-                            refreshToken: user.token.refreshToken
-                        }
-                    },
-                    {
-                        upsert: true
-                    }
-                )
+        await this.database.tokens.deleteMany({ username: user.username })
             
-            if(!token) {
+        if(user.tokens.length)
+        {
+            const tokens = await this.database.tokens.insertMany(user.tokens)
+            
+            if(!tokens) {
                 throw new Error("Unable to store new refresh token")
             }
-                
-            return new User(
-                user.username,
-                user.password,
-                new Token(user.username, token.refreshToken)
-            );
         }
+        
 
         return new User(
             user.username,
             user.password,
-            null
+            user.tokens
         );
     }
 }

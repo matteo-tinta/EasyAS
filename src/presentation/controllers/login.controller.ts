@@ -1,14 +1,14 @@
 import { Request, Response, Router } from "express"
-import { LoginService } from "../../core/services/login.service";
 import { inject, injectable } from "inversify";
 import { LoginPresentationDto } from "../models/login/login.model";
+import { UserService } from "../../core/services/user.service";
 
 @injectable()
 export class LoginController {
 
     constructor(
-        @inject(LoginService)
-        private loginService: LoginService) {
+        @inject(UserService)
+        private userService: UserService) {
 
     }
 
@@ -22,7 +22,7 @@ export class LoginController {
 
         const {
             token, refreshToken
-        } = await this.loginService.loginUserAndGetTokensAsync(body)
+        } = await this.userService.loginUserAndGetTokensAsync(body)
 
         return res.status(200).send({
             "token": token,
