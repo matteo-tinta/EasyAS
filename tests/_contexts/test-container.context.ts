@@ -56,11 +56,15 @@ export const composeTest = baseTest.extend<CustomTestContainerContext>({
   },
   seed: async({mongoDBContainer, expect}, use) => {
     await use(async (collection, ...data) => {
+      let parsed = JSON.stringify(data)
+
+      parsed = parsed.replace(/"__DATE__(.+?)__DATE__"/g, 'new Date("$1")');
+
       var response = await mongoDBContainer.exec([
             "mongosh",
             "mongodb://test:test@localhost:27017/AS?authSource=admin&retryWrites=true&w=majority",
             "--eval",
-            `db.${collection}.insertMany(${JSON.stringify(data)})`
+            `db.${collection}.insertMany(${parsed})`
       ]);
 
       if(response.exitCode != 0) {

@@ -74,7 +74,7 @@ export default async (req: Request<{}, {}, PAYLOAD>, res: Response) => {
     var accessToken = JWT.instance.sign({ user: token.username })
 
     return res.status(200).send({
-        "accessToken": accessToken,
+        "token": accessToken,
         "refreshToken": refreshToken
     })
 }
