@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction} from 'express';
-import { DB } from '../infrastructure/persitence/db';
-import { raise } from '../raise';
-import { JWT } from '../jwt/jwt';
 import { JsonWebTokenError } from 'jsonwebtoken';
+import { container } from '../dependiencies';
+import { JwtService } from '../core/services/jwt.service';
 
 export default async (req: Request, res: Response, next: NextFunction) => {
   
@@ -12,8 +11,10 @@ export default async (req: Request, res: Response, next: NextFunction) => {
         return;
     }
 
+    
     try {
-        req.user = JWT.instance.verifyAndDecode(token)
+        var service = await container.getAsync(JwtService)
+        req.user = service.verifyAndDecode(token);
     } catch (error) {
         console.error(error)
         if(error instanceof JsonWebTokenError) {

@@ -1,13 +1,16 @@
 import { inject, injectable } from "inversify";
 import { randomBytes } from "crypto";
-import { JWT } from "../../jwt/jwt";
 import { UserRepository } from "../../infrastructure/persitence/user/user.repository";
 import { User } from "../../domain/user/user.domain";
+import { JwtService } from "./jwt.service";
 
 @injectable("Request")
 export class UserService {
 
-    constructor(@inject(UserRepository) private userRepository: UserRepository) {
+    constructor(
+        @inject(UserRepository) private userRepository: UserRepository,
+        @inject(JwtService) private jwtService: JwtService
+    ) {
         
     }
 
@@ -29,12 +32,12 @@ export class UserService {
         }
         
         const refreshToken = this.generateRefreshToken()
-        user.addToken(refreshToken);
+        user.addToken(refreshToken, new Date(new Date().getTime() + 60 * 60 * 1000));
         
         //update refresh token in the database
         this.userRepository.upsertUser(user);
         
-        const accessToken = JWT.instance.sign({user: username})
+        const accessToken = this.jwtService.sign({user: username})
         return {
             token: accessToken,
             refreshToken: refreshToken
@@ -69,5 +72,31 @@ export class UserService {
         user.revokeAllTokens();
 
         return await this.userRepository.upsertUser(user);
+    }
+
+    public renewToken = async (refreshToken: string) => {
+        var user = await this.userRepository.getByRefreshTokenAsync(refreshToken)
+
+        if(!user) {
+            throw new Error("User does not exist")
+        }
+
+        var storedToken = user.tokens.find(f => f.refreshToken == refreshToken);
+
+        if (!storedToken) {
+            throw new Error("token does not exist")
+        }
+
+        var now = new Date()
+        
+        user.removeToken(storedToken.refreshToken)
+        await this.userRepository.upsertUser(user)
+
+        if (now > storedToken.expiredAt) {    
+            throw new Error("invalid grant (expired)")
+        }
+
+        return await this.loginUserAndGetTokensAsync({ username: user.username, password: user.password });
+
     }
 }

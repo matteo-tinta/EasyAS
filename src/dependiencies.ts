@@ -6,7 +6,7 @@ import { TYPES } from "./dependencies.types";
 import { UserRepository } from "./infrastructure/persitence/user/user.repository";
 import { RegisterController } from "./presentation/controllers/register.controller";
 import { UserService } from "./core/services/user.service";
-import { LogoutController } from "./presentation/controllers/logout.controller";
+import { JwtService } from "./core/services/jwt.service";
 
 const container = new Container()
 
@@ -23,12 +23,13 @@ container.bind(Database).toSelf();
 container.bind(UserRepository).toSelf();
 
 //core
+container.bind(JwtService).toSelf();
 container.bind(UserService).toSelf();
 
 //presentation
 container.bind(LoginController).toSelf();
 container.bind(RegisterController).toSelf();
-container.bind(LogoutController).toSelf();
+
 
 export {
     container

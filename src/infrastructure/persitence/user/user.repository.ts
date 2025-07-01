@@ -8,11 +8,32 @@ import { Filter } from "mongodb";
 @injectable()
 export class UserRepository {
     
+    
 
     constructor(
         @inject(Database) private database: Database
     ) {
         
+    }
+
+    public async getByRefreshTokenAsync(refreshToken: string) {
+        var tokens = await this.database.tokens.find({ refreshToken: refreshToken }).toArray()
+
+        if(!tokens?.length) {
+            return null;
+        }
+
+        var user = await this.database.users.findOne({ username: tokens[0].username })
+
+        if(!user) {
+            return null;
+        }
+
+        return new User(
+            user.username,
+            user.password,
+            !tokens?.length ? [] : tokens.map(t => new Token(user!.username, t.refreshToken, t.expiredAt))
+        )
     }
 
     public async getAsync(filter: Filter<UserCollection>) {
@@ -26,7 +47,7 @@ export class UserRepository {
         return new User(
             result.username,
             result.password,
-            !tokens?.length ? [] : tokens.map(t => new Token(result!.username, t.refreshToken))
+            !tokens?.length ? [] : tokens.map(t => new Token(result!.username, t.refreshToken, t.expiredAt))
         )
     }
 
@@ -43,7 +64,7 @@ export class UserRepository {
         if(user.tokens.length)
         {
             const tokens = await this.database.tokens.insertMany(user.tokens)
-            
+
             if(!tokens) {
                 throw new Error("Unable to store new refresh token")
             }

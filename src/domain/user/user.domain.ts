@@ -15,21 +15,21 @@ export class User {
         this.tokens = []
     }
 
-    public addToken = (newToken: string) => {
-        this.tokens = [...this.tokens || [], new Token(this.username, newToken)]
+    public addToken = (newToken: string, expireAt: Date) => {
+        this.tokens = [...this.tokens || [], new Token(this.username, newToken, expireAt)]
     }
 
     public removeToken = (token: string) => {
         if(!this.tokens){
-            return;
+            throw new Error("tokens was empty")
         }
 
         const storedToken = this.tokens.findIndex(f => f.refreshToken == token);
         if(storedToken < 0) {
-            return;
+            throw new Error("Stored token was not found in the collection of the user tokens")
         }
 
-        this.tokens = this.tokens.splice(storedToken, 1)
+        this.tokens.splice(storedToken, 1)
     }
     
 }

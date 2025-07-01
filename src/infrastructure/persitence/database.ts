@@ -9,7 +9,8 @@ export type UserCollection = {
 
 export type TokenCollection = {
     username: string,
-    refreshToken: string
+    refreshToken: string,
+    expiredAt: Date,
 }
 
 
