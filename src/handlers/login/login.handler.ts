@@ -14,12 +14,18 @@ const generateRefreshToken = () => randomBytes(32).toString('hex')
 export default async (req: Request<{}, {}, {}, PAYLOAD>, res: Response) => {
     var body = req.query;
 
-    const result = DB.instance
+    if(!body.username || !body.password) {
+        res.status(400).send({})
+        return;
+    }
+
+    const result = await DB.instance
         .database
         .collection("users")
         .find({ username: body.username, password: body.password })
+        .toArray()
 
-    if(!result) {
+    if(!result.length) {
         return res.status(401).send({ error: 401, message: "Credentials invalid" })
     }
 
