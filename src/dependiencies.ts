@@ -5,6 +5,8 @@ import { DatabaseConnector } from "./infrastructure/persitence/database.connecto
 import { Database } from "./infrastructure/persitence/database";
 import { TYPES } from "./dependencies.types";
 import { UserRepository } from "./infrastructure/persitence/user/user.repository";
+import { RegisterService } from "./core/services/register.service";
+import { RegisterController } from "./presentation/controllers/register.controller";
 
 const container = new Container()
 
@@ -22,9 +24,11 @@ container.bind(UserRepository).toSelf();
 
 //core
 container.bind(LoginService).toSelf();
+container.bind(RegisterService).toSelf();
 
 //presentation
 container.bind(LoginController).toSelf();
+container.bind(RegisterController).toSelf();
 
 export {
     container
