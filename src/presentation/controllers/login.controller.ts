@@ -20,9 +20,14 @@ export class LoginController {
             return;
         }
 
-        const result = await this.userService.loginUserAndGetTokensAsync(body)
+        try {
+            const result = await this.userService.loginUserAndGetTokensAsync(body)
+            return res.status(200).send({ ...result })
+        } catch (error) {
+            console.error(error)
+            return res.status(401).send({ error: "Credentials Invalid" })
+        }
 
-        res.status(200).send({ ...result })
     }
 
     public revokeAllTokensForLoggedInUser = async (req: Request, res: Response) => {
