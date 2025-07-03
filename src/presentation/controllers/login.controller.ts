@@ -54,5 +54,25 @@ export class LoginController {
     public verify = async (req: Request, res: Response) => {
         res.status(200).send({ok: true})
     }
+
+    public decode = (req: Request, res: Response) => {
+        const decodedTokenAsExample = {
+            userId: req.headers["x_roles_user_id"]
+        }
+
+        if(!decodedTokenAsExample.userId) {
+            console.dir({
+                error: "x_roles_user_id missing", 
+                headers: req.headers
+            })
+
+            return res.status(401).json({
+                error: "x_roles_user_id missing", 
+                headers: req.headers
+            })
+        }
+
+        return res.status(200).json(decodedTokenAsExample)
+    };
 }
 

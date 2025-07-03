@@ -3,7 +3,7 @@ services:
     build: .
     container_name: eas-app
     ports:
-      - "4002:4000"
+      - "4000:4000"
     environment:
       NODE_ENV: production
     depends_on:
@@ -24,6 +24,20 @@ services:
         - path: ./.env
           action: rebuild
     
+  eas-internalize:
+    image: eas-internalize
+    container_name: eas-internalize
+    restart: always
+    ports:
+    - 3000:3000
+    depends_on:
+      - eas-mongo
+    environment:
+      NODE_ENV: production
+      DB_CONN_STRING: mongodb://test:test@eas-mongo:27017/internalize?authSource=admin
+      # RSA_PUBLIC_KEY: -----BEGIN PUBLIC KEY-----\nyour-public-key\n-----END PUBLIC KEY-----
+      # RSA_PRIVATE_KEY: -----BEGIN RSA PRIVATE KEY-----\nyour-private-key\n-----END RSA PRIVATE KEY-----
+  
   eas-mongo:
     image: mongo:8
     container_name: eas-mongo

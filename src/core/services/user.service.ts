@@ -3,13 +3,16 @@ import { randomBytes } from "crypto";
 import { UserRepository } from "../../infrastructure/persitence/user/user.repository";
 import { User } from "../../domain/user/user.domain";
 import { JwtService } from "./jwt.service";
+import { TYPES } from "../../dependencies.types";
+import { IRoleService } from "./role.service";
 
 @injectable("Request")
 export class UserService {
 
     constructor(
         @inject(UserRepository) private userRepository: UserRepository,
-        @inject(JwtService) private jwtService: JwtService
+        @inject(JwtService) private jwtService: JwtService,
+        @inject(TYPES.roleService) private roleService: IRoleService,
     ) {
         
     }
@@ -30,6 +33,8 @@ export class UserService {
         if(!user) {
             throw new Error("Credentials invalid")
         }
+
+        const roles = await this.roleService.getRolesForUser(username);
         
         const refreshToken = this.generateRefreshToken()
         user.addToken(refreshToken, new Date(new Date().getTime() + 60 * 60 * 1000));
@@ -37,7 +42,7 @@ export class UserService {
         //update refresh token in the database
         this.userRepository.upsertUser(user);
         
-        const accessToken = this.jwtService.sign({user: username})
+        const accessToken = this.jwtService.sign({user: username, roles})
         return {
             token: accessToken,
             refreshToken: refreshToken

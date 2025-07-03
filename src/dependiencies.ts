@@ -7,6 +7,8 @@ import { UserRepository } from "./infrastructure/persitence/user/user.repository
 import { RegisterController } from "./presentation/controllers/register.controller";
 import { UserService } from "./core/services/user.service";
 import { JwtService } from "./core/services/jwt.service";
+import { ENVIRONMENT } from "./environment";
+import { NoRoleService, RoleService } from "./core/services/role.service";
 
 const container = new Container()
 
@@ -25,6 +27,15 @@ container.bind(UserRepository).toSelf();
 //core
 container.bind(JwtService).toSelf();
 container.bind(UserService).toSelf();
+
+if(ENVIRONMENT.HAS_ROLE){
+    console.debug("Roles setup")
+    container.bind(TYPES.roleService).to(RoleService)
+}
+else {
+    console.debug("No Roles setup")
+    container.bind(TYPES.roleService).to(NoRoleService)
+}
 
 //presentation
 container.bind(LoginController).toSelf();

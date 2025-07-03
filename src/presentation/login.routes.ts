@@ -7,9 +7,12 @@ export const loginRoutes = (loginController: LoginController) => {
 
     loginRouter.get("/login", loginController.loginAsync)
     loginRouter.post("/renew", loginController.renewToken)
-
+    
     loginRouter.get("/logout", withAuthVerify, loginController.revokeAllTokensForLoggedInUser)
     loginRouter.get("/verify", withAuthVerify, loginController.verify)
+
+    //internalize introspective endpoint
+    loginRouter.get("/decode", loginController.decode)
 
     return loginRouter
 }
