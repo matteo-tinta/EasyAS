@@ -28,6 +28,10 @@ export class RoleService implements IRoleService {
             }
         })
 
+        if(internalizeReponse.status == 404) {
+            return []
+        }
+
         if(!internalizeReponse.ok) {
             console.dir({
                 error: "Internalize Error 0001: Response Status",
