@@ -1,31 +1,37 @@
 import { inject, injectable } from "inversify";
-import { Database, UserCollection } from "../database";
-import { User } from "../../../domain/user/user.domain";
-import { Token } from "../../../domain/token/token.domain";
 import { Filter } from "mongodb";
+import { Token } from "../../../domain/token/token.domain";
+import { User } from "../../../domain/user/user.domain";
+import { Database, UserCollection } from "../database";
 
 
 @injectable()
 export class UserRepository {
-    
-    
+
+
+
 
     constructor(
         @inject(Database) private database: Database
     ) {
-        
+
+    }
+
+    public async getAllUsers() {
+        const result = await this.database.users.find().toArray()
+        return result;
     }
 
     public async getByRefreshTokenAsync(refreshToken: string) {
         var tokens = await this.database.tokens.find({ refreshToken: refreshToken }).toArray()
 
-        if(!tokens?.length) {
+        if (!tokens?.length) {
             return null;
         }
 
         var user = await this.database.users.findOne({ username: tokens[0].username })
 
-        if(!user) {
+        if (!user) {
             return null;
         }
 
@@ -40,7 +46,7 @@ export class UserRepository {
         var result = await this.database.users.findOne(filter)
         var tokens = await this.database.tokens.find({ username: filter.username }).toArray()
 
-        if(!result) {
+        if (!result) {
             return null;
         }
 
@@ -54,22 +60,21 @@ export class UserRepository {
     public async upsertUser(user: User): Promise<User> {
         await this.database.users
             .findOneAndReplace(
-                { username: user.username }, 
+                { username: user.username },
                 { username: user.username, password: user.password },
                 { upsert: true }
             )
-        
+
         await this.database.tokens.deleteMany({ username: user.username })
-            
-        if(user.tokens.length)
-        {
+
+        if (user.tokens.length) {
             const tokens = await this.database.tokens.insertMany(user.tokens)
 
-            if(!tokens) {
+            if (!tokens) {
                 throw new Error("Unable to store new refresh token")
             }
         }
-        
+
 
         return new User(
             user.username,

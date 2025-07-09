@@ -22,17 +22,17 @@ export class NoRoleService implements IRoleService {
 export class RoleService implements IRoleService {
 
     public getRolesForUser = async (userId: string) => {
-        const internalizeReponse = await fetch(`${ENVIRONMENT.PDP_HOST}${ENVIRONMENT.PDP_ROLE_ENDPOINT}?interrogate=${ENVIRONMENT.PDP_INTERROGATE_CALLBACK}`, {
+        const internalizeReponse = await fetch(`${ENVIRONMENT.PDP_HOST()}${ENVIRONMENT.PDP_ROLE_ENDPOINT()}?interrogate=${ENVIRONMENT.PDP_INTERROGATE_CALLBACK()}`, {
             headers: {
                 "x_roles_user_id": userId
             }
         })
 
-        if(internalizeReponse.status == 404) {
+        if (internalizeReponse.status == 404) {
             return []
         }
 
-        if(!internalizeReponse.ok) {
+        if (!internalizeReponse.ok) {
             console.dir({
                 error: "Internalize Error 0001: Response Status",
                 response: internalizeReponse
@@ -42,7 +42,7 @@ export class RoleService implements IRoleService {
 
         const response = await internalizeReponse.json()
 
-        if(!("userId" in response) || typeof response.userId != "string" || response.userId != userId) {
+        if (!("userId" in response) || typeof response.userId != "string" || response.userId != userId) {
             console.dir({
                 error: "Internalize Error 0002: Reponse was unacceptable",
                 userId: userId,

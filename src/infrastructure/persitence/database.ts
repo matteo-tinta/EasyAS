@@ -1,6 +1,6 @@
-import { injectable, inject } from "inversify";
-import { DatabaseConnector } from "./database.connector";
+import { inject, injectable } from "inversify";
 import { TYPES } from "../../dependencies.types";
+import { DatabaseConnector } from "./database.connector";
 
 export type UserCollection = {
     username: string,
@@ -16,13 +16,18 @@ export type TokenCollection = {
 
 @injectable()
 export class Database {
-    
+
     constructor(
         @inject(TYPES.databaseConnector)
         private connector: DatabaseConnector) {
-        
+
     }
 
-    public users = this.connector.database.collection<UserCollection>("users");
-    public tokens = this.connector.database.collection<TokenCollection>("tokens");
+    public get users() {
+        return this.connector.database.collection<UserCollection>("users");
+    }
+
+    public get tokens() {
+        return this.connector.database.collection<TokenCollection>("tokens");
+    }
 }

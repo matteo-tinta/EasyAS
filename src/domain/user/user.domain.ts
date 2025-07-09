@@ -1,13 +1,11 @@
 import { Token } from "../token/token.domain";
 
 export class User {
-    
-
     constructor(
         public username: string,
         public password: string,
         public tokens: Token[] = [],
-    ) { 
+    ) {
 
     }
 
@@ -20,16 +18,16 @@ export class User {
     }
 
     public removeToken = (token: string) => {
-        if(!this.tokens){
+        if (!this.tokens) {
             throw new Error("tokens was empty")
         }
 
         const storedToken = this.tokens.findIndex(f => f.refreshToken == token);
-        if(storedToken < 0) {
+        if (storedToken < 0) {
             throw new Error("Stored token was not found in the collection of the user tokens")
         }
 
         this.tokens.splice(storedToken, 1)
     }
-    
+
 }

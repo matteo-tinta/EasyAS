@@ -104,4 +104,8 @@ export class UserService {
         return await this.loginUserAndGetTokensAsync({ username: user.username, password: user.password });
 
     }
+
+    public getAllUsers = async () => {
+        return await this.userRepository.getAllUsers()
+    }
 }

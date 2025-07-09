@@ -14,6 +14,9 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.21.2
+      get-port:
+        specifier: ^7.1.0
+        version: 7.1.0
       inversify:
         specifier: 7.0.0-alpha.5
         version: 7.0.0-alpha.5(reflect-metadata@0.2.2)

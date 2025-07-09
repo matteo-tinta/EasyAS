@@ -9,6 +9,8 @@ import { loginRoutes } from "./presentation/login.routes";
 import { container } from "./dependiencies";
 import { registerRoutes } from "./presentation/register.routes";
 import { RegisterController } from "./presentation/controllers/register.controller";
+import { userRoutes } from "./presentation/user.routes";
+import { UserController } from "./presentation/controllers/user.controller";
 
 const startAppAsync = async () => {
     const app = express();
@@ -20,6 +22,7 @@ const startAppAsync = async () => {
         withLogging
     )
 
+    app.use("/users", userRoutes(await container.getAsync(UserController)))
     app.use("/token", loginRoutes(await container.getAsync(LoginController)))
     app.use("/register", registerRoutes(await container.getAsync(RegisterController)))
 
