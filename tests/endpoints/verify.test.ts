@@ -1,18 +1,13 @@
 import { describe } from "node:test";
-import { beforeAll, expect } from "vitest";
+import { expect, vi } from "vitest";
 import { composeTest } from "../_contexts/test-container.context";
 
 
 describe("Verify Endpoint", () => {
-    const wait = async (timeInSeconds: number) => {
-        await new Promise((res, rej) => setTimeout(() => {
-            res(undefined)
-        }, timeInSeconds * 1000))
-    }
+    composeTest("verify should return ok if access token is valid, then ko if token is invalid", async ({ appUrl, client }) => {
+        vi.useFakeTimers();
 
-    composeTest("verify should return ok if access token is valid, then ko if token is invalid", async ({ appUrl, seed }) => {
-        //Login and getting token
-        await seed("users", {
+        await client.db().collection("users").insertOne({
             username: "exampleUser",
             password: "strongPassword123"
         })
@@ -29,22 +24,22 @@ describe("Verify Endpoint", () => {
             }
         })
         let verifyResultJson = await verifyResult.json()
-        
-        expect(verifyResult.status).toBe(200)
-        expect(verifyResultJson).toMatchObject({ok: true})
 
-        //wait for 60s to make it down
-        await wait(60);
-        
+        expect(verifyResult.status).toBe(200)
+        expect(verifyResultJson).toMatchObject({ ok: true })
+
+        //Advance time by 60 seconds (60000 milliseconds)
+        vi.advanceTimersByTime(60000);
+
         verifyResult = await fetch(`${appUrl}/token/verify`, {
             headers: {
                 "Authorization": `Bearer ${json.token}`
             }
         })
         verifyResultJson = await verifyResult.json()
-        
-        expect(verifyResult.status).toBe(401)
-        expect(verifyResultJson).toMatchObject({ok: false})
 
-    }, 1000 * 80) //waiting for it to expire
+        expect(verifyResult.status).toBe(401)
+        expect(verifyResultJson).toMatchObject({ ok: false })
+
+    }) //waiting for it to expire
 })

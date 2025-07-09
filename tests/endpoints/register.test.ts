@@ -1,10 +1,10 @@
 import { describe } from "node:test";
-import { beforeAll, expect } from "vitest";
+import { expect } from "vitest";
 import { composeTest } from "../_contexts/test-container.context";
 
 
 describe("Register Endpoint", () => {
-    composeTest("register should register a new user", async ({ appUrl, seed }) => {
+    composeTest("register should register a new user", async ({ appUrl }) => {
         const result = await fetch(`${appUrl}/register`, {
             method: "POST",
             headers: {
@@ -20,7 +20,7 @@ describe("Register Endpoint", () => {
 
         const loginResult = await fetch(`${appUrl}/token/login?username=exampleUser&password=strongPassword123`)
         var json = await loginResult.json()
-        
+
         expect(loginResult.status).toBe(200)
         expect(json.token).toMatch(/^(?:[^.]*\.){2}[^.]*$/); //JWT format
         expect(json.refreshToken).toBeDefined();

@@ -1,77 +1,50 @@
-import path from 'path';
-import { GenericContainer, Network, StartedNetwork, StartedTestContainer, Wait } from 'testcontainers'; // or your lib
+import { MongoDBContainer, StartedMongoDBContainer } from "@testcontainers/mongodb";
+import getPort from "get-port";
+import { createServer, IncomingMessage, Server, ServerResponse } from 'http';
+import { MongoClient } from "mongodb";
 import { test as baseTest } from 'vitest';
-import fs from "fs"
+import startAppAsync from '../../src/app';
 
 interface CustomTestContainerContext {
-  network: StartedNetwork,
-  mongoDBContainer: StartedTestContainer,
-  app: StartedTestContainer;
+  mongoDBContainer: StartedMongoDBContainer,
+  server: Server<typeof IncomingMessage, typeof ServerResponse>;
+  appPort: number;
+  connectionString: string,
+  client: MongoClient,
   appUrl: string;
-  seed: (collection: string, ...data: object[]) => Promise<void>;
 }
 
 export const composeTest = baseTest.extend<CustomTestContainerContext>({
-  network: async({}, use) => {
-    const net = await new Network().start();
-    await use(net)
-  },
-  mongoDBContainer: async({network}, use) => {
-    const mongodbContainer = await new GenericContainer("mongo:8")
-        .withEnvironment({
-          "MONGO_INITDB_ROOT_USERNAME": "test",
-          "MONGO_INITDB_ROOT_PASSWORD": "test"
-        })
-        .withCommand(["mongod", "--bind_ip", "0.0.0.0", "--auth"])
-        .withWaitStrategy(Wait.forLogMessage(/MongoDB init process complete/i))
-        .withNetwork(network)
-        .start();
-      
-    await use(mongodbContainer);
-    await mongodbContainer.stop({ remove: true, removeVolumes: true })
-  },
-  app: async ({mongoDBContainer, network}, use) => {
-    const startedContainer = await new GenericContainer("easyas-test-image")
-      .withNetwork(network)
-      .withExposedPorts(4000)
-      // .withLogConsumer(readableStream => {
-      //   readableStream.on('data', (chunk) => {
-      //     console.log(chunk);
-      //   });
-      // })
-      .withEnvironment({
-        "DB_CONN_STRING": `mongodb://test:test@${mongoDBContainer.getHostname()}:27017/as?authSource=admin&retryWrites=true&w=majority`,
-        "DB_NAME": "AS"
+  mongoDBContainer: async ({ }, use) => {
+    var container = await new MongoDBContainer("mongo:8")
+      .withLogConsumer((stream) => {
+        stream.on("error", console.log)
       })
-      .withWaitStrategy(Wait.forLogMessage(/Server running/i))
+      .withExposedPorts(27017)
       .start()
 
-    await use(startedContainer)
-    startedContainer
-    await startedContainer.stop({ remove: true })
+    await use(container)
+    await container.stop({ remove: true, removeVolumes: true })
   },
-  appUrl: async({app}, use) => {
-    const port = app.getMappedPort(4000);
-    await use(`http://localhost:${port}`)
+  server: async ({ appPort, connectionString }, use) => {
+    console.log("connection_string", connectionString)
+    process.env["DB_CONN_STRING"] = connectionString;
+
+    var app = await startAppAsync();
+    const server = createServer(app);
+
+    server.listen(appPort);
+
+    await use(server)
+    server.close()
   },
-  seed: async({mongoDBContainer, expect}, use) => {
-    await use(async (collection, ...data) => {
-      let parsed = JSON.stringify(data)
-
-      parsed = parsed.replace(/"__DATE__(.+?)__DATE__"/g, 'new Date("$1")');
-
-      var response = await mongoDBContainer.exec([
-            "mongosh",
-            "mongodb://test:test@localhost:27017/AS?authSource=admin&retryWrites=true&w=majority",
-            "--eval",
-            `db.${collection}.insertMany(${parsed})`
-      ]);
-
-      if(response.exitCode != 0) {
-        console.error(response)
-      }
-
-      expect(response.exitCode, "cannot seed database with data").toBe(0)
-    })
-  }
+  connectionString: async ({ mongoDBContainer }, use) => {
+    await use(`${mongoDBContainer.getConnectionString()}/as?directConnection=true&authSource=admin&retryWrites=true&w=majority`)
+  },
+  client: async ({ connectionString }, use) => {
+    var client = await new MongoClient(connectionString).connect()
+    await use(client)
+  },
+  appPort: async ({ }, use) => await use(await getPort()),
+  appUrl: async ({ appPort, server }, use) => await use(`http://localhost:${appPort}`),
 });
