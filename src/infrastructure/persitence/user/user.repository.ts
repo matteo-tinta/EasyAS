@@ -1,85 +1,70 @@
-import { inject, injectable } from "inversify";
-import { Filter } from "mongodb";
-import { Token } from "../../../domain/token/token.domain";
-import { User } from "../../../domain/user/user.domain";
-import { Database, UserCollection } from "../database";
-
+import { inject, injectable } from 'inversify';
+import { Filter } from 'mongodb';
+import { Token } from '../../../domain/token/token.domain';
+import { User } from '../../../domain/user/user.domain';
+import { Database, UserCollection } from '../database';
 
 @injectable()
 export class UserRepository {
+  constructor(@inject(Database) private database: Database) {}
 
+  public async getAllUsers() {
+    const result = await this.database.users.find().toArray();
+    return result;
+  }
 
+  public async getByRefreshTokenAsync(refreshToken: string) {
+    const tokens = await this.database.tokens.find({ refreshToken: refreshToken }).toArray();
 
-
-    constructor(
-        @inject(Database) private database: Database
-    ) {
-
+    if (!tokens?.length) {
+      return null;
     }
 
-    public async getAllUsers() {
-        const result = await this.database.users.find().toArray()
-        return result;
+    const user = await this.database.users.findOne({ username: tokens[0].username });
+
+    if (!user) {
+      return null;
     }
 
-    public async getByRefreshTokenAsync(refreshToken: string) {
-        var tokens = await this.database.tokens.find({ refreshToken: refreshToken }).toArray()
+    return new User(
+      user.username,
+      user.password,
+      !tokens?.length ? [] : tokens.map((t) => new Token(user!.username, t.sessionId, t.refreshToken, t.expiredAt)),
+    );
+  }
 
-        if (!tokens?.length) {
-            return null;
-        }
+  public async getAsync(filter: Filter<UserCollection>) {
+    const result = await this.database.users.findOne(filter);
+    const tokens = await this.database.tokens.find({ username: filter.username }).toArray();
 
-        var user = await this.database.users.findOne({ username: tokens[0].username })
-
-        if (!user) {
-            return null;
-        }
-
-        return new User(
-            user.username,
-            user.password,
-            !tokens?.length ? [] : tokens.map(t => new Token(user!.username, t.refreshToken, t.expiredAt))
-        )
+    if (!result) {
+      return null;
     }
 
-    public async getAsync(filter: Filter<UserCollection>) {
-        var result = await this.database.users.findOne(filter)
-        var tokens = await this.database.tokens.find({ username: filter.username }).toArray()
+    return new User(
+      result.username,
+      result.password,
+      !tokens?.length ? [] : tokens.map((t) => new Token(result!.username, t.sessionId, t.refreshToken, t.expiredAt)),
+    );
+  }
 
-        if (!result) {
-            return null;
-        }
+  public async upsertUser(user: User): Promise<User> {
+    await this.database.users.findOneAndReplace(
+      { username: user.username },
+      { username: user.username, password: user.password },
+      { upsert: true },
+    );
 
-        return new User(
-            result.username,
-            result.password,
-            !tokens?.length ? [] : tokens.map(t => new Token(result!.username, t.refreshToken, t.expiredAt))
-        )
+    await this.database.tokens.deleteMany({ username: user.username });
+
+    if (user.tokens.length) {
+      const tokens = await this.database.tokens.insertMany(user.tokens);
+
+      if (!tokens) {
+        throw new Error('Unable to store new refresh token');
+      }
     }
 
-    public async upsertUser(user: User): Promise<User> {
-        await this.database.users
-            .findOneAndReplace(
-                { username: user.username },
-                { username: user.username, password: user.password },
-                { upsert: true }
-            )
-
-        await this.database.tokens.deleteMany({ username: user.username })
-
-        if (user.tokens.length) {
-            const tokens = await this.database.tokens.insertMany(user.tokens)
-
-            if (!tokens) {
-                throw new Error("Unable to store new refresh token")
-            }
-        }
-
-
-        return new User(
-            user.username,
-            user.password,
-            user.tokens
-        );
-    }
+    return new User(user.username, user.password, user.tokens);
+  }
 }
